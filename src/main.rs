@@ -1,5 +1,6 @@
 extern crate reqwest;
 extern crate tempdir;
+extern crate protobuf_codegen_pure;
 
 use reqwest::header::AUTHORIZATION;
 use std::fs::File;
@@ -24,6 +25,7 @@ fn unpack_and_read_dataset() {
     let client = reqwest::Client::new();
     let api_key = "apikey 66oiEpcdH8zrdwW9YzJnTIlnTK7VKcmCHsdH";
     let target = "https://api.transport.nsw.gov.au/v1/gtfs/schedule/sydneytrains";
+
     let mut response = client
         .get(target)
         .header(AUTHORIZATION, api_key)
@@ -53,5 +55,15 @@ fn unpack_and_read_dataset() {
 }
 
 fn main() {
-    unpack_and_read_dataset();
+
+//    unpack_and_read_dataset();
+
+    protobuf_codegen_pure::run(protobuf_codegen_pure::Args {
+        out_dir: "src/protos",
+        input: &["protos/gtfs_realtime.proto"],
+        includes: &["protos"],
+        customize: protobuf_codegen_pure::Customize {
+            ..Default::default()
+        },
+    }).expect("protoc");
 }

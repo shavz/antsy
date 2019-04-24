@@ -6,10 +6,14 @@
   <component name="ClojureProjectResolveSettings">
     <currentScheme>IDE</currentScheme>
   </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="UuldmvZF" />
+  </component>
   <component name="ProjectRootManager">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="RustProjectSettings">
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+    <option name="version" value="2" />
   </component>
 </project>
