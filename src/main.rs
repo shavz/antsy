@@ -1,13 +1,16 @@
 extern crate reqwest;
 extern crate tempdir;
-extern crate protobuf_codegen_pure;
+extern crate protoc_rust;
 
+use protobuf::{parse_from_bytes, CodedInputStream, Message};
 use reqwest::header::AUTHORIZATION;
+use reqwest::Response;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{copy, SeekFrom};
 use std::path::PathBuf;
 use tempdir::TempDir;
+use protoc_rust::Customize;
 
 fn unpack_gtfs_zip_archive(file: &mut File) {
     let mut zip_reader = zip::ZipArchive::new(File::open("sydneytrains.zip").unwrap()).unwrap();
@@ -20,13 +23,13 @@ fn unpack_gtfs_zip_archive(file: &mut File) {
     }
 }
 
-fn unpack_and_read_dataset() {
+fn unpack_and_read_schedule_dataset() {
     let tmp_dir = TempDir::new_in("src", "trains").unwrap();
     let client = reqwest::Client::new();
     let api_key = "apikey 66oiEpcdH8zrdwW9YzJnTIlnTK7VKcmCHsdH";
-    let target = "https://api.transport.nsw.gov.au/v1/gtfs/schedule/sydneytrains";
+    let target = "https://api.transport.nsw.gov.au/v1/gtfs/schedules/sydneytrains";
 
-    let mut response = client
+    let mut response: Response = client
         .get(target)
         .header(AUTHORIZATION, api_key)
         .send()
@@ -54,16 +57,44 @@ fn unpack_and_read_dataset() {
     unpack_gtfs_zip_archive(&mut dest);
 }
 
+//fn get_alerts() {
+//    let client = reqwest::Client::new();
+//    let api_key = "apikey 66oiEpcdH8zrdwW9YzJnTIlnTK7VKcmCHsdH";
+//    let target = "https://api.transport.nsw.gov.au/v1/gtfs/alerts/sydneytrains";
+//
+//    let mut response: Response = client
+//        .get(target)
+//        .header(AUTHORIZATION, api_key)
+//        .send()
+//        .unwrap();
+////    println!("response is {:?}", response.text());
+//    let mut bytes_to_parse = Vec::new();
+//    for byte in response.bytes() {
+//        bytes_to_parse.push(byte.unwrap());
+//    }
+//    let mut parsed_protobuf: CodedInputStream =
+//        CodedInputStream::from_bytes(bytes_to_parse.as_slice());
+//
+//    let mut alert = Alert::new();
+//
+//    alert
+//        .merge_from(&mut parsed_protobuf)
+//        .expect("fail to merge");
+//
+//    println!("parsed protobuf is {:#?}", alert)
+//}
+
 fn main() {
+    //    unpack_and_read_schedule_dataset();
+//    get_alerts();
 
-//    unpack_and_read_dataset();
-
-    protobuf_codegen_pure::run(protobuf_codegen_pure::Args {
+    protoc_rust::run(protoc_rust::Args {
         out_dir: "src/protos",
         input: &["protos/gtfs_realtime.proto"],
         includes: &["protos"],
-        customize: protobuf_codegen_pure::Customize {
+        customize: Customize {
             ..Default::default()
         },
     }).expect("protoc");
 }
+
