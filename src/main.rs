@@ -375,9 +375,7 @@ fn get_trips_between_stops(start_stop_id: &str, end_stop_id: &str) -> Trips {
         .header(AUTHORIZATION, api_key)
         .send()
         .unwrap();
-//    let text = response.text_with_charset("utf-8").unwrap();
-//    println!("text is {:?}", text);
-    let trips: Trips = serde_json::from_str(&text).unwrap();
+    let trips: Trips = response.json().unwrap();
     trips
 }
 fn main() {
@@ -385,6 +383,5 @@ fn main() {
     let stop2 = get_stops_for_stop_key("parramatta");
     let trip = get_trips_between_stops(&stop1.locations[0].id, &stop2.locations[0].id);
     println!("the trip is {:?}", trip);
-}
 
-//https://api.transport.nsw.gov.au/v1/tp/trip?outputFormat=rapidJSON&coordOutputFormat=EPSG%3A4326&depArrMacro=dep//&itdTime=1200&type_origin=any&name_origin=10101102&type_destination=any&name_destination=10101229//&calcNumberOfTrips=1&excludedMeans=checkbox&exclMOT_4=1&exclMOT_5=1&exclMOT_7=1&exclMOT_9=1&exclMOT_11=1&TfNSWTR//=true&version=10.2.1.42
+}
