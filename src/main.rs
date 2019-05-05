@@ -9,68 +9,59 @@ use std::io::prelude::*;
 use std::io::{copy, SeekFrom};
 use std::path::PathBuf;
 use tempdir::TempDir;
+use serde::{Serialize, Deserialize};
 
-fn unpack_gtfs_zip_archive(file: &mut File) {
-    let mut zip_reader = zip::ZipArchive::new(File::open("sydneytrains.zip").unwrap()).unwrap();
+// Stops json
 
-    for i in 0..zip_reader.len() {
-        let mut temp_file = zip_reader.by_index(i).unwrap();
-        println!("Filename: {}", temp_file.name());
-        let first_byte = temp_file.bytes().next().unwrap().unwrap();
-        println!("{}", first_byte);
-    }
+#[derive(Serialize, Deserialize)]
+struct StopsRoot {
+    version: String,
+    locations: Vec<Locations>,
 }
 
-fn unpack_and_read_schedule_dataset() {
-    let tmp_dir = TempDir::new_in("src", "trains").unwrap();
-    let client = reqwest::Client::new();
-    let api_key = "apikey 66oiEpcdH8zrdwW9YzJnTIlnTK7VKcmCHsdH";
-    let target = "https://api.transport.nsw.gov.au/v1/gtfs/schedules/sydneytrains";
-
-    let mut response: Response = client
-        .get(target)
-        .header(AUTHORIZATION, api_key)
-        .send()
-        .unwrap();
-
-    let mut dest = {
-        let mut fname = response
-            .url()
-            .path_segments()
-            .and_then(|segments| segments.last())
-            .and_then(|name| if name.is_empty() { None } else { Some(name) })
-            .unwrap_or("tmp.bin")
-            .to_owned();
-
-        fname.push_str(".zip");
-
-        println!("file to download: '{}'", fname);
-        let fname = PathBuf::from(".").join(fname);
-        println!("will be located under: '{:?}'", fname);
-        File::create(fname).unwrap()
-    };
-    println!("destination is {:?}", dest);
-    let bytes_copied = copy(&mut response, &mut dest).unwrap();
-    println!("total bytes received were {:?}", bytes_copied);
-    unpack_gtfs_zip_archive(&mut dest);
+#[derive(Serialize, Deserialize)]
+struct AssignedStops {
+    id: String,
+    name: String,
+    #[serde(rename = "type")]
+    _type: String,
+    coord: Vec<f64>,
+    parent: Parent1,
+    modes: Vec<i64>,
+    #[serde(rename = "connectingMode")]
+    connecting_mode: i64,
 }
 
-fn get_alerts() {
-    let client = reqwest::Client::new();
-    let api_key = "apikey 66oiEpcdH8zrdwW9YzJnTIlnTK7VKcmCHsdH";
-    let target = "https://api.transport.nsw.gov.au/v1/gtfs/alerts/sydneytrains?debug=true";
-
-    let mut response: Response = client
-        .get(target)
-        .header(AUTHORIZATION, api_key)
-        .header(ACCEPT, "application/x-google-protobuf")
-        .send()
-        .unwrap();
-
-    println!("parsed alert length is {:#?}", response.text())
+#[derive(Serialize, Deserialize)]
+struct Locations {
+    id: String,
+    name: String,
+    #[serde(rename = "disassembledName")]
+    disassembled_name: String,
+    coord: Vec<f64>,
+    #[serde(rename = "type")]
+    _type: String,
+    #[serde(rename = "matchQuality")]
+    match_quality: i64,
+    #[serde(rename = "isBest")]
+    is_best: bool,
+    modes: Vec<i64>,
+    parent: Parent,
+    #[serde(rename = "assignedStops")]
+    assigned_stops: Vec<AssignedStops>,
 }
 
-fn main() {
-    //    unpack_and_read_schedule_dataset();
-    get_alerts();
+#[derive(Serialize, Deserialize)]
+struct Parent {
+    id: String,
+    name: String,
+    #[serde(rename = "type")]
+    _type: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct Parent1 {
+    name: String,
+    #[serde(rename = "type")]
+    _type: String,
 }
