@@ -5,8 +5,5 @@ authors = ["shiveenpandita <shiveenpandita@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-reqwest = "0.9.13"
-tempdir = "0.3.7"
-zip = "0.5.2"
-quick-protobuf = "0.6.2"
+reqwest = "0.9.16"
 serde = { version = "1.0.90", features=["derive"] }
